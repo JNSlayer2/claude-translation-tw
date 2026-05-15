@@ -1,0 +1,20 @@
+{
+  "name": "claude-translation-tw",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Traditional Chinese UI translation layer for the macOS Claude desktop app.",
+  "bin": {
+    "claude-tw-patch": "scripts/patch-asar.mjs"
+  },
+  "scripts": {
+    "install-local": "bash scripts/install.sh",
+    "patch": "node scripts/patch-asar.mjs",
+    "verify": "bash scripts/diag.sh",
+    "restore": "bash scripts/restore.sh"
+  },
+  "dependencies": {
+    "@electron/asar": "^3.4.1"
+  },
+  "license": "MIT"
+}

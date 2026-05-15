@@ -1,0 +1,11 @@
+node_modules/
+*.log
+*.tmp
+.DS_Store
+._*
+claude-tw/backups/
+claude-tw/state.json
+claude-tw/menubar-bin
+ClaudeTW.app/
+dist/
+coverage/
