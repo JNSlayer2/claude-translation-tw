@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": false,
   "type": "module",
-  "description": "Traditional Chinese UI translation layer for the macOS Claude desktop app.",
+  "description": "macOS Claude 桌面版繁體中文 UI 翻譯補丁。",
   "bin": {
     "claude-tw-patch": "scripts/patch-asar.mjs"
   },

@@ -1,54 +1,54 @@
-# Translation Quality Notes
+# 翻譯品質筆記
 
-The current Claude Traditional Chinese patch is operational but not linguistically finished. Treat this as the quality backlog for future iterations.
+目前 Claude 繁體中文補丁可運作，但語意品質仍需持續打磨。這份文件是後續 iteration 的品質 backlog。
 
-## Known Weaknesses
+## 已知弱點
 
-- Semantic quality is uneven because uncaught strings fall back to Google Translate.
-- Coverage is incomplete for long settings descriptions, account/billing text, popovers, menu items, and dynamically generated labels.
-- Product names and model names are sometimes machine-translated incorrectly.
-- `Model`, `Models`, `Legacy Model`, `Skills`, and `Cowork` should be preserved as product terms unless the user explicitly requests localized labels.
-- Some mixed-language strings become awkward, such as "More options for ..." or model selectors.
-- Some proper nouns and usernames are translated when they should be preserved.
-- Text inside repeated history items may be translated even when the title is user-authored; keep this conservative.
+- 未命中字典的字串會 fallback 到 Google Translate，語意品質不穩。
+- 長篇設定說明、帳號/帳務文字、popover、menu item 與動態 label 覆蓋率仍可能不足。
+- 產品名稱與模型名稱有時會被機器翻譯誤傷。
+- `Model`、`Models`、`Legacy Model`、`Skills`、`Cowork` 預設應保留為產品術語，除非使用者明確要求本地化。
+- 混合語言字串可能變得不順，例如 `More options for ...` 或 model selector。
+- Proper noun、使用者名稱、帳號名稱應保留，不應翻譯。
+- 重複歷史項目中的文字可能是使用者自訂標題，篩選要保守。
 
-## Preferred Taiwan Terms
+## 台灣用語偏好
 
-Use Taiwan Traditional Chinese wording unless the product itself uses English.
+除非產品本身使用英文，否則使用台灣繁體中文：
 
-- Chat: 聊天
-- Cowork: Cowork or 協作, prefer keeping `Cowork` when it is a product mode label.
-- Code: 程式碼
-- Claude Code: Claude Code
-- New chat: 新增聊天
-- New session: 新增對話
-- Recents: 最近
-- Projects: 專案
-- Artifacts: Artifacts or 成果物, avoid `文物`.
-- Customize: 自訂
-- Appearance: 外觀
-- Settings: 設定
-- Account: 帳號
-- Privacy: 隱私
-- Billing: 帳務 or 計費
-- Usage: 用量
-- Capabilities: 功能
-- Connectors: 連接器
-- Extensions: 擴充功能
-- Developer: 開發者
-- Desktop app: 桌面應用程式
-- Revoke access: 撤銷存取權
-- Pull request: Pull request or PR, avoid `拉取請求` in developer-heavy areas.
-- Worktree: worktree or 工作樹; keep `worktree` if shown beside Git terms.
-- Prompt: 提示詞
-- Model: keep `Model` in selectors and account/product surfaces; use `模型` only in explanatory prose when clearly not a product label.
-- Adaptive: 自適應
-- Extra high: 極高
-- Bypass permissions: 略過權限
+- Chat：聊天
+- Cowork：Cowork；若是一般說明可用「協作」，產品 mode label 優先保留 `Cowork`
+- Code：程式碼
+- Claude Code：Claude Code
+- New chat：新增聊天
+- New session：新增對話
+- Recents：最近
+- Projects：專案
+- Artifacts：Artifacts 或成果物，避免「文物」
+- Customize：自訂
+- Appearance：外觀
+- Settings：設定
+- Account：帳號
+- Privacy：隱私
+- Billing：帳務或計費
+- Usage：用量
+- Capabilities：功能
+- Connectors：連接器
+- Extensions：擴充功能
+- Developer：開發者
+- Desktop app：桌面應用程式
+- Revoke access：撤銷存取權
+- Pull request：Pull request 或 PR，開發者頁面避免「拉取請求」
+- Worktree：worktree 或工作樹；若旁邊有 Git 術語，可保留 `worktree`
+- Prompt：提示詞
+- Model：selector 與產品介面保留 `Model`；清楚是說明文字時才用「模型」
+- Adaptive：自適應
+- Extra high：極高
+- Bypass permissions：略過權限
 
-## Terms To Preserve
+## 應保留的術語
 
-Do not translate these unless the UI clearly needs a localized explanatory label:
+除非 UI 明確需要解釋，不要翻譯：
 
 - Claude
 - Claude Code
@@ -71,58 +71,58 @@ Do not translate these unless the UI clearly needs a localized explanatory label
 - URL
 - API
 - user: scopes
-- file paths
+- 檔案路徑
 - branch names
 - model ids
 - account names and usernames
 
-## Filtering Rules To Improve
+## 篩選規則
 
-The translator should not translate:
+translator 不應翻譯：
 
-- Composer text and prompt body
+- Composer 內的使用者實際輸入與 prompt body
 - Assistant/user transcript content
-- Recent/history titles and task titles
-- `textarea`, `input`, `contenteditable`, `code`, `pre`, `kbd`, `samp`
-- URL, email, file path, branch, token, and scope-like strings
-- Table cells containing application scopes or auth metadata
-- Recent chat titles unless the user explicitly wants history titles translated
+- Recent/history titles 與 task titles
+- `textarea`、`input`、`contenteditable`、`code`、`pre`、`kbd`、`samp`
+- URL、email、file path、branch、token、scope 類字串
+- application scopes 或 auth metadata 表格欄位
+- Recent chat titles，除非使用者明確要求翻歷史標題
 
-The translator should translate:
+translator 應翻譯：
 
-- Sidebar buttons and labels
-- Menus and menu items
-- Tooltips and aria-labels
-- Placeholders
-- Dialog titles and buttons
-- Settings navigation and setting titles
-- Settings row descriptions, including long explanatory text under toggles
-- Popovers and command labels
-- Empty-state and onboarding UI
-- Curated exact-match strings outside the usual UI selectors, such as main-page headings, suggestion cards, project empty states, Live artifacts empty states, and Customize overview cards. Keep transcript/input/code filters in front of this exact-match allowance.
+- 側欄按鈕與 label
+- menu 與 menu item
+- tooltip 與 aria-label
+- placeholder
+- dialog title 與 button
+- Settings navigation 與 setting title
+- Settings row description，包含 toggle 下方長說明
+- popover 與 command label
+- empty-state 與 onboarding UI
+- 人工字典中的 exact-match 字串，即使不在一般 UI selector 內，例如主頁標題、建議卡、project empty state、Live artifacts empty state、Customize overview card。仍需先套用 transcript/input/code 排除規則。
 
-Post-process machine translation fallback into Taiwan wording before applying it. Known replacements include `插件` to `外掛`, `文件` to `檔案`, `文件夾` to `資料夾`, `屏幕` to `螢幕`, `鼠標` to `滑鼠`, `默認` to `預設`, and `登錄` to `登入`.
+機器翻譯 fallback 套用前，要先修成台灣用語。已知替換包含：`插件` → `外掛`、`文件` → `檔案`、`文件夾` → `資料夾`、`屏幕` → `螢幕`、`鼠標` → `滑鼠`、`默認` → `預設`、`登錄` → `登入`。
 
-## Cowork-Specific Checks
+## Cowork 專項檢查
 
-After patching and ad-hoc signing Claude.app, Cowork may fail in two separate places:
+補丁並 ad-hoc 簽章 Claude.app 後，Cowork 可能在兩個不同位置失敗：
 
-- Opening Cowork shows `Invalid installation`; this comes from the Cowork support-status entitlement check.
-- Cowork opens but shows `Failed to start Claude's workspace`; this comes from the VM startup entitlement check.
+- 開 Cowork 顯示 `Invalid installation`：來自 Cowork support-status entitlement check。
+- Cowork 開啟後顯示 `Failed to start Claude's workspace`：來自 VM startup entitlement check。
 
-Both are false failures for this local patched app when the native check returns `entitlement_missing`. The patcher should bypass only that value and preserve all other virtualization errors.
+當 native check 回傳 `entitlement_missing` 時，這兩者對本機補丁 app 來說是 false failure。patcher 只應繞過這個值，其他 virtualization errors 必須保留。
 
-If Cowork then shows `VZErrorDomain Code=2` with missing `com.apple.security.virtualization`, the support gates are fixed but the top-level Claude app still needs the virtualization entitlement. Re-sign nested code normally, then sign only `/Applications/Claude.app` with the entitlement plist. Do not deep-sign every helper with the entitlement plist.
+若 Cowork 接著顯示 `VZErrorDomain Code=2` 且缺 `com.apple.security.virtualization`，代表 support gates 已修好，但最上層 Claude app 仍需要 virtualization entitlement。先正常 re-sign nested code，再只對 `/Applications/Claude.app` 套 entitlement plist。不要 deep-sign 每個 helper。
 
-## Override Strategy
+## Override 策略
 
-Prefer `overrides.json` for all high-frequency UI strings. Add exact-string entries first, then guarded phrase replacements only when safe.
+高頻 UI 優先寫進 `overrides.json`。先加 exact-string entry，再考慮有保護條件的 phrase replacement。
 
-On `/settings` pages, prefer exact full-string overrides and full-sentence translation. Do not let broad partial replacements such as `General` or identity-preserved terms such as `Claude` suppress full-sentence translation.
+在 `/settings` 頁面，優先使用完整 exact full-string override 與完整句翻譯。不要讓 `General` 這類短字或 `Claude` 這類 identity-preserved term 壓掉完整句翻譯。
 
-Track translated text nodes individually. A single settings row often contains a title and a description in the same parent container; parent-level "already translated" markers cause the description to be skipped.
+逐一追蹤 translated text nodes。Settings row 常常同時有 title 與 description；如果只在 parent level 標記「已翻譯」，description 會被跳過。
 
-Good override candidates:
+好的 override 候選：
 
 - `More options for {title}` patterns
 - `Your plan ends in {n} days`
@@ -132,16 +132,16 @@ Good override candidates:
 - Settings labels and toggles
 - Permission and notification labels
 
-Avoid broad replacements for short words like `Max`, `Code`, `Local`, `Light`, and `Dark` unless context is known. These cause product-name drift and poor output.
+避免對 `Max`、`Code`、`Local`、`Light`、`Dark` 這類短字做廣泛替換，除非上下文很清楚。否則容易讓產品名稱漂移。
 
-## Verification Expectations
+## 驗證期望
 
-Every quality iteration should include:
+每次品質 iteration 都應包含：
 
-- Main screen visual check
-- New chat composer check
-- Settings navigation check
-- At least one settings detail page check
-- Toggle-off restore check
+- 主畫面視覺檢查
+- New chat composer 檢查
+- Settings navigation 檢查
+- 至少一個 Settings detail page 檢查
+- 取消翻譯 restore 檢查
 
-Report remaining English strings as a quality backlog, not as a patch failure, if injection and toggling work.
+若 injection 與 toggle 已正常，但仍有零星英文，應回報為品質 backlog，而不是補丁失敗。

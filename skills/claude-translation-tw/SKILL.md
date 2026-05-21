@@ -1,62 +1,62 @@
 ---
 name: claude-translation-tw
-description: Use when patching, repairing, improving, or verifying the local macOS Claude.app Traditional Chinese translation layer, including app.asar injection, ClaudeTW menubar control, translation quality, rollback, and real UI verification.
+description: 當需要補丁、修復、改善或驗證本機 macOS Claude.app 繁體中文翻譯層時使用，包含 app.asar 注入、ClaudeTW 選單列控制、翻譯品質、還原與實機 UI 驗證。
 metadata:
-  short-description: Patch Claude.app UI into Traditional Chinese
+  short-description: 將 Claude.app UI 補丁成繁體中文
 ---
 
-# Claude Traditional Chinese Translation
+# Claude 繁體中文翻譯補丁
 
-Use this skill when the user wants the local macOS Claude desktop app translated into Traditional Chinese, wants the patch repaired after an app update, or wants translation coverage improved.
+當使用者想把本機 macOS Claude 桌面版翻成繁體中文、Claude 更新後需要修補、或想改善翻譯覆蓋率時使用這個 skill。
 
-## Public Runtime Layout
+## 公開版 Runtime 位置
 
-- Claude app: `/Applications/Claude.app`
-- Patch root: `$HOME/.local/share/claude-tw`
-- Menubar controller: `$HOME/Applications/ClaudeTW.app`
-- Wake LaunchAgent: `$HOME/Library/LaunchAgents/com.layer2.claude-tw.wake.plist`
+- Claude app：`/Applications/Claude.app`
+- 補丁根目錄：`$HOME/.local/share/claude-tw`
+- 選單列控制器：`$HOME/Applications/ClaudeTW.app`
+- 自動喚醒 LaunchAgent：`$HOME/Library/LaunchAgents/com.layer2.claude-tw.wake.plist`
 
-## Core Lessons
+## 核心經驗
 
-Claude desktop loads the main UI from `claude.ai` in an Electron `WebContentsView`. Local i18n files are not enough for the chat UI.
+Claude 桌面版的主 UI 是從 `claude.ai` 載入到 Electron `WebContentsView`。只改本機 i18n 檔案不足以處理聊天主介面。
 
-The CDP route is unreliable because Claude desktop may ignore `--remote-debugging-port`. Prefer `app.asar` main-process injection.
+CDP 路線不可靠，因為 Claude 桌面版可能不吃 `--remote-debugging-port`。優先使用 `app.asar` 的 main process 注入。
 
-The preload-only route is insufficient because sandbox preload cannot reliably read local files with `require('node:fs')`. The working route injects `translator.js` into the real Claude `WebContentsView` on `dom-ready`.
+只靠 preload 也不夠，因為 sandbox preload 不能穩定使用 `require('node:fs')` 讀取本機檔案。可行路線是在 `dom-ready` 時，從 main process 把 `translator.js` 注入真正的 Claude `WebContentsView`。
 
-When injecting source into minified code, use `String.replace(needle, () => replacement)`. A plain replacement string can corrupt injected source because regex replacement tokens like `$&` are expanded.
+把原始碼注入 minified code 時，要用 `String.replace(needle, () => replacement)`。不能用一般 replacement string，否則像 `$&` 這類 regex replacement token 會被展開，破壞注入內容。
 
-## Cowork Checks
+## Cowork 檢查
 
-Ad-hoc signing after patching can trigger false Cowork entitlement failures:
+補丁並 ad-hoc 簽章後，Cowork 可能出現假的 entitlement 錯誤：
 
-- Support status can report `virtualization_entitlement_missing`.
-- VM startup can report that Claude's installation was modified.
+- support status 回報 `virtualization_entitlement_missing`
+- VM 啟動路徑回報 Claude 安裝已被修改
 
-Bypass only `entitlement_missing` in those two known checks. Preserve unsupported platform, unsupported OS, architecture, and real virtualization failures.
+只繞過這兩個已知檢查中的 `entitlement_missing`。其他 unsupported platform、unsupported OS、architecture 與真實 virtualization 錯誤都要保留。
 
-Sign nested code normally first:
+先正常簽章 nested code：
 
 ```bash
 codesign --force --deep --sign - /Applications/Claude.app
 ```
 
-Then sign only the top-level Claude bundle with the virtualization entitlement:
+再只對最上層 Claude bundle 套 virtualization entitlement：
 
 ```bash
 codesign --force --sign - --entitlements "$HOME/.local/share/claude-tw/claude-entitlements.plist" /Applications/Claude.app
 ```
 
-Do not deep-sign every helper/framework with the entitlement plist.
+不要把 entitlement plist 用 `--deep` 套到每個 Electron helper/framework。
 
-## Patch Flow
+## 補丁流程
 
 ```bash
 npm install
 bash scripts/install.sh
 ```
 
-For repair after a Claude update:
+Claude 更新後修復：
 
 ```bash
 node scripts/patch-asar.mjs
@@ -65,29 +65,29 @@ codesign --force --sign - --entitlements "$HOME/.local/share/claude-tw/claude-en
 codesign --verify --deep --strict /Applications/Claude.app
 ```
 
-## Verification
+## 驗證
 
-Never report success from static checks alone. Verify the real app UI.
+不要只靠靜態檢查就回報成功。必須看真實 app UI。
 
-Static:
+靜態檢查：
 
 ```bash
 bash scripts/diag.sh
 ```
 
-Visual:
+視覺檢查：
 
-- Main screen: sidebar, composer placeholder, suggestions, add menu.
-- Cowork Projects: empty-state headings, buttons, and no invalid-installation modal.
-- Customize: overview cards, connector/plugin/Skills labels; preserve `Skills`.
-- Settings: navigation, desktop settings, Code/Cowork pages, long descriptions.
-- Toggle-off restore: menu bar helper should stop new translations and restore cached nodes where possible.
+- 主畫面：側欄、composer placeholder、建議卡、加號選單。
+- Cowork Projects：空狀態標題、按鈕，且不能出現 invalid-installation modal。
+- Customize：overview 卡片、connector/plugin/Skills 標籤；`Skills` 保留英文。
+- Settings：導覽、桌面設定、Code/Cowork 頁與長說明文字。
+- 取消翻譯：選單列 helper 應停止新翻譯，並盡可能還原已快取的節點。
 
-## Translation Rules
+## 翻譯規則
 
-Translate system UI only. Avoid translating user conversations, user input, recent/history titles, prompt body, code, file paths, URLs, tokens, model ids, app names, and scope-like strings.
+只翻系統 UI。避免翻譯使用者對話、使用者輸入、最近/歷史標題、提示正文、程式碼、檔案路徑、URL、token、model id、app 名稱與 scope 類字串。
 
-Preserve product and model terms unless the UI clearly needs an explanatory translation:
+除非 UI 明確需要解釋，否則保留下列產品與模型術語：
 
 - `Claude`
 - `Claude Code`
@@ -108,20 +108,20 @@ Preserve product and model terms unless the UI clearly needs an explanatory tran
 - `API`
 - `URL`
 
-Prefer Taiwan Traditional Chinese terms:
+優先使用台灣繁體中文用語：
 
-- `外掛`, not `插件`
-- `檔案`, not `文件`
-- `資料夾`, not `文件夾`
-- `螢幕`, not `屏幕`
-- `滑鼠`, not `鼠標`
-- `預設`, not `默認`
-- `登入`, not `登錄`
+- `外掛`，不要用 `插件`
+- `檔案`，不要用 `文件`
+- `資料夾`，不要用 `文件夾`
+- `螢幕`，不要用 `屏幕`
+- `滑鼠`，不要用 `鼠標`
+- `預設`，不要用 `默認`
+- `登入`，不要用 `登錄`
 
-## Recovery
+## 還原
 
 ```bash
 bash scripts/restore.sh
 ```
 
-Backups are stored under `$HOME/.local/share/claude-tw/backups/`.
+備份會放在 `$HOME/.local/share/claude-tw/backups/`。
