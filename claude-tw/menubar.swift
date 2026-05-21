@@ -75,7 +75,7 @@ func makeMascotIcon(enabled: Bool) -> NSImage {
     image.lockFocus()
     defer { image.unlockFocus() }
 
-    NSGraphicsContext.current?.imageInterpolation = .none
+    NSGraphicsContext.current?.imageInterpolation = .high
     NSColor.clear.setFill()
     NSRect(origin: .zero, size: size).fill()
 
@@ -84,40 +84,46 @@ func makeMascotIcon(enabled: Bool) -> NSImage {
     let blue = NSColor(calibratedRed: 0.04, green: 0.20, blue: 0.55, alpha: alpha)
     let white = NSColor(calibratedWhite: 1.0, alpha: alpha)
 
-    func fill(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ color: NSColor) {
-        color.setFill()
-        NSBezierPath(rect: NSRect(x: x, y: y, width: w, height: h)).fill()
+    let badgeRect = NSRect(x: 3, y: 1, width: 20, height: 18)
+    let badge = NSBezierPath(roundedRect: badgeRect, xRadius: 5, yRadius: 5)
+
+    red.setFill()
+    badge.fill()
+
+    NSGraphicsContext.saveGraphicsState()
+    badge.addClip()
+    blue.setFill()
+    NSBezierPath(rect: NSRect(x: 3, y: 10, width: 9.5, height: 9)).fill()
+    NSGraphicsContext.restoreGraphicsState()
+
+    let sunCenter = NSPoint(x: 7.8, y: 14.4)
+    white.setFill()
+    for index in 0..<12 {
+        let angle = CGFloat(index) * CGFloat.pi / 6
+        let inner: CGFloat = 3.0
+        let outer: CGFloat = 4.4
+        let half: CGFloat = CGFloat.pi / 18
+        let p1 = NSPoint(x: sunCenter.x + cos(angle - half) * inner, y: sunCenter.y + sin(angle - half) * inner)
+        let p2 = NSPoint(x: sunCenter.x + cos(angle) * outer, y: sunCenter.y + sin(angle) * outer)
+        let p3 = NSPoint(x: sunCenter.x + cos(angle + half) * inner, y: sunCenter.y + sin(angle + half) * inner)
+        let ray = NSBezierPath()
+        ray.move(to: p1)
+        ray.line(to: p2)
+        ray.line(to: p3)
+        ray.close()
+        ray.fill()
     }
+    NSBezierPath(ovalIn: NSRect(x: sunCenter.x - 2.2, y: sunCenter.y - 2.2, width: 4.4, height: 4.4)).fill()
 
-    // Pixel-style Claude mascot silhouette, recolored with Taiwan flag red/blue/white.
-    fill(7, 4, 13, 11, red)
-    fill(5, 7, 17, 7, red)
-    fill(9, 15, 9, 2, red)
-    fill(6, 2, 3, 3, red)
-    fill(17, 2, 3, 3, red)
-    fill(3, 8, 3, 4, red)
-    fill(22, 8, 2, 4, red)
-
-    fill(7, 11, 7, 4, blue)
-    fill(9, 12, 1.5, 1.5, white)
-    fill(12, 12, 1.5, 1.5, white)
-    fill(10.5, 13.5, 1.5, 1.5, white)
-    fill(10.5, 10.5, 1.5, 1.5, white)
-
-    fill(10, 8, 2, 2, white)
-    fill(16, 8, 2, 2, white)
-
-    if enabled {
-        let check = NSBezierPath()
-        check.move(to: NSPoint(x: 17.5, y: 4.0))
-        check.line(to: NSPoint(x: 20.3, y: 1.5))
-        check.line(to: NSPoint(x: 25.0, y: 8.0))
-        white.setStroke()
-        check.lineWidth = 2.2
-        check.lineCapStyle = .round
-        check.lineJoinStyle = .round
-        check.stroke()
-    }
+    let check = NSBezierPath()
+    check.move(to: NSPoint(x: 13.0, y: 7.0))
+    check.line(to: NSPoint(x: 16.3, y: 3.8))
+    check.line(to: NSPoint(x: 22.2, y: 11.0))
+    white.setStroke()
+    check.lineWidth = 2.6
+    check.lineCapStyle = .round
+    check.lineJoinStyle = .round
+    check.stroke()
 
     image.isTemplate = false
     return image
