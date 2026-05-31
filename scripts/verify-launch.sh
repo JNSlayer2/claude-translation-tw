@@ -7,6 +7,17 @@ APP="${CLAUDE_APP:-/Applications/Claude.app}"
 WAKE_SH="${SHARE_DIR}/wake.sh"
 FAIL_LOG="$HOME_DIR/Library/Logs/Claude/launch-failure.err"
 
+wait_for_claude() {
+  local deadline=$((SECONDS + 20))
+  while (( SECONDS < deadline )); do
+    if pgrep -lf '^/Applications/Claude.app/Contents/MacOS/Claude$|Claude Helper' >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
 if [[ ! -x "$WAKE_SH" ]]; then
   echo "missing wake script: $WAKE_SH" >&2
   exit 1
@@ -26,7 +37,14 @@ sleep 2
   "$WAKE_SH" --enable
 )
 
-sleep 10
+if ! wait_for_claude; then
+  echo "Claude did not start" >&2
+  [[ -f "$FAIL_LOG" ]] && tail -n 40 "$FAIL_LOG"
+  exit 1
+fi
+
+osascript -e 'tell application "Claude" to activate' >/dev/null 2>&1 || true
+sleep 5
 
 echo
 echo "proxy:"
@@ -36,7 +54,7 @@ echo
 echo
 echo "processes:"
 pgrep -lf '^/Applications/Claude.app/Contents/MacOS/Claude$|Claude Helper' || {
-  echo "Claude did not stay running" >&2
+  echo "Claude did not stay running after activation" >&2
   exit 1
 }
 
