@@ -8,6 +8,9 @@ HELPER_APP="$HOME/Applications/ClaudeTW.app"
 HELPER_BIN="$HELPER_APP/Contents/MacOS/ClaudeTW"
 LAUNCH_AGENT="$HOME/Library/LaunchAgents/com.layer2.claude-tw.wake.plist"
 
+# Avoid macOS cwd/TCC issues when the repo lives under protected folders like Documents.
+cd /
+
 if [[ ! -d "$APP" ]]; then
   echo "Claude.app not found at $APP" >&2
   exit 1
@@ -24,11 +27,26 @@ if ! command -v xcrun >/dev/null 2>&1; then
 fi
 
 mkdir -p "$SHARE" "$HOME/Applications" "$HOME/Library/LaunchAgents"
-cp "$ROOT"/claude-tw/translator.js "$SHARE/translator.js"
-cp "$ROOT"/claude-tw/serve.mjs "$SHARE/serve.mjs"
-cp "$ROOT"/claude-tw/overrides.json "$SHARE/overrides.json"
-cp "$ROOT"/claude-tw/claude-entitlements.plist "$SHARE/claude-entitlements.plist"
-cp "$ROOT"/claude-tw/wake.sh "$SHARE/wake.sh"
+CLAUDE_TW_ROOT="$ROOT" CLAUDE_TW_SHARE="$SHARE" node --input-type=module <<'NODE'
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+
+const root = process.env.CLAUDE_TW_ROOT;
+const share = process.env.CLAUDE_TW_SHARE;
+const files = [
+  'translator.js',
+  'serve.mjs',
+  'overrides.json',
+  'claude-entitlements.plist',
+  'wake.sh'
+];
+
+for (const file of files) {
+  const source = path.join(root, 'claude-tw', file);
+  const target = path.join(share, file);
+  await writeFile(target, await readFile(source));
+}
+NODE
 chmod +x "$SHARE/wake.sh"
 printf '{"enabled":true,"proxyPort":9223,"targetLanguage":"zh-TW"}\n' > "$SHARE/state.json"
 
@@ -94,7 +112,5 @@ codesign --force --sign - --entitlements "$SHARE/claude-entitlements.plist" "$AP
 codesign --verify --deep --strict "$APP"
 
 "$SHARE/wake.sh" --enable
-open -g "$HELPER_APP"
-open "$APP"
 
 echo "Claude Translation TW installed."

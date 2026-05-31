@@ -10,6 +10,7 @@ HELPER_BIN="${HELPER_APP}/Contents/MacOS/ClaudeTW"
 CLAUDE_BIN="/Applications/Claude.app/Contents/MacOS/Claude"
 LOG_PATH="/tmp/claude-tw-serve.log"
 WAKE_LOG="/tmp/claude-tw-wake.log"
+HELPER_AUTO_LAUNCH="${CLAUDE_TW_AUTO_HELPER:-0}"
 
 log() {
   /bin/mkdir -p "$(/usr/bin/dirname "${WAKE_LOG}")"
@@ -57,16 +58,38 @@ start_proxy_if_needed() {
     log "node not found"
     return 1
   fi
-  /usr/bin/nohup "${node_bin}" "${SERVE_PATH}" >> "${LOG_PATH}" 2>&1 &
+  (
+    cd "${HOME_DIR}" || exit 1
+    /usr/bin/nohup "${node_bin}" "${SERVE_PATH}" >> "${LOG_PATH}" 2>&1 &
+  )
 }
 
 wake_helper() {
+  if [[ "${HELPER_AUTO_LAUNCH}" != "1" ]]; then
+    log "helper auto launch disabled"
+    return 0
+  fi
   if helper_running; then
     log "helper already running"
     return 0
   fi
-  log "opening helper"
-  /usr/bin/open -g "${HELPER_APP}"
+  log "starting helper binary"
+  (
+    cd "${HOME_DIR}" || exit 1
+    /usr/bin/nohup "${HELPER_BIN}" >> /tmp/claude-tw-helper.log 2>&1 &
+  )
+}
+
+start_claude_if_needed() {
+  if claude_running; then
+    log "Claude already running"
+    return 0
+  fi
+  log "starting Claude binary"
+  (
+    cd "${HOME_DIR}" || exit 1
+    /usr/bin/nohup "${CLAUDE_BIN}" >> /tmp/claude-tw-claude.log 2>&1 &
+  )
 }
 
 case "${1:-wake}" in
@@ -84,7 +107,7 @@ case "${1:-wake}" in
     write_enabled_state
     start_proxy_if_needed
     wake_helper
-    /usr/bin/open -g "/Applications/Claude.app"
+    start_claude_if_needed
     ;;
   *)
     state_enabled && start_proxy_if_needed

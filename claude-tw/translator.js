@@ -155,11 +155,23 @@
     'Type / for skills'
   ].includes(normalize(text));
 
+  function hasExactOverride(text) {
+    const normalized = normalize(text);
+    return Boolean(
+      (overrides[text] && overrides[text] !== text) ||
+      (overrides[normalized] && overrides[normalized] !== normalized)
+    );
+  }
+
+  function hasLocalTranslationCandidate(text) {
+    return hasExactOverride(text) || Boolean(directTranslate(text, !isSettingsPage()));
+  }
+
   const shouldTranslateTextNode = (node) => {
     const parent = node.parentElement;
     const text = normalize(node.nodeValue || '');
     if (!parent || (shouldSkipElement(parent) && !isSafeComposerPlaceholder(text))) return false;
-    if (overrides[text] && overrides[text] !== text && text.length <= 220) return true;
+    if (hasLocalTranslationCandidate(text) && text.length <= 220) return true;
     if (isNoisy(text) || !isEnglishish(text)) return false;
     if (looksLikeUserTitle(parent, text)) return false;
     if (isSettingsPage() && text.length <= 420) return true;
@@ -172,7 +184,7 @@
     if (shouldSkipElement(el)) return false;
     const text = normalize(el.getAttribute(attr) || '');
     if (looksLikeUserTitle(el, text)) return false;
-    if (overrides[text] && overrides[text] !== text && text.length <= 220) return true;
+    if (hasLocalTranslationCandidate(text) && text.length <= 220) return true;
     return !isNoisy(text) && isEnglishish(text);
   };
 

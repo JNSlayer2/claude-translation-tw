@@ -14,6 +14,11 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import * as asar from '@electron/asar';
+import {
+  patchCoworkSupport,
+  patchCoworkVm,
+  patchMainDomReadyHook
+} from './patch-rules.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const app = process.env.CLAUDE_APP || '/Applications/Claude.app';
@@ -84,21 +89,8 @@ index = index.replace(
   ''
 );
 
-const coworkOriginal = `if(r==="entitlement_missing")return{status:"unsupported",reason:ae().formatMessage({defaultMessage:"Claude's installation appears to be corrupted. Reinstall Claude from claude.com/download to use this feature.",id:"oqcioCyuAP"}),unsupportedCode:"virtualization_entitlement_missing"};if(r!=="supported")return`;
-const coworkPatched = `if(r==="entitlement_missing"){try{console.warn("[${coworkSentinel}] bypassing entitlement_missing caused by local ad-hoc signature")}catch{}}else if(r!=="supported")return`;
-if (index.includes(coworkOriginal)) {
-  index = index.replace(coworkOriginal, coworkPatched);
-} else if (!index.includes(coworkSentinel)) {
-  throw new Error('Could not find Cowork entitlement support check');
-}
-
-const coworkVmOriginal = `if(a!==void 0&&a!=="supported"){Ke.warn(\`[startVM] Virtualization not available (\${a}), skipping\`),HV(AD.Offline),fG(a==="entitlement_missing"?"Claude's installation appears to be invalid or has been modified. Reinstall Claude from claude.ai/download to use this feature.":"Virtualization is not supported on this Mac. This can happen when macOS is running inside a virtual machine without nested virtualization enabled.");return}`;
-const coworkVmPatched = `if(a==="entitlement_missing"){try{Ke.warn("[${coworkVmSentinel}] bypassing entitlement_missing caused by local ad-hoc signature")}catch{}}else if(a!==void 0&&a!=="supported"){Ke.warn(\`[startVM] Virtualization not available (\${a}), skipping\`),HV(AD.Offline),fG("Virtualization is not supported on this Mac. This can happen when macOS is running inside a virtual machine without nested virtualization enabled.");return}`;
-if (index.includes(coworkVmOriginal)) {
-  index = index.replace(coworkVmOriginal, coworkVmPatched);
-} else if (!index.includes(coworkVmSentinel)) {
-  throw new Error('Could not find Cowork VM startup entitlement check');
-}
+index = patchCoworkSupport(index, coworkSentinel);
+index = patchCoworkVm(index, coworkVmSentinel);
 
 const translatorPath = existsSync(path.join(share, 'translator.js'))
   ? path.join(share, 'translator.js')
@@ -121,13 +113,7 @@ ${translatorSource}
 })();
 `;
 const injectCall = `/* ${mainSentinel} START */;try{s.webContents.executeJavaScript(${JSON.stringify(pageScript)},true).catch(()=>{})}catch{};/* ${mainSentinel} END */`;
-const needles = [
-  's.webContents.on("dom-ready",()=>{jaA()});',
-  's.webContents.on("dom-ready",()=>{jaA();});'
-];
-const needle = needles.find((candidate) => index.includes(candidate));
-if (!needle) throw new Error('Could not find main WebContents dom-ready hook');
-index = index.replace(needle, () => `s.webContents.on("dom-ready",()=>{jaA();${injectCall}});`);
+index = patchMainDomReadyHook(index, injectCall);
 writeFileSync(indexPath, index);
 
 await asar.createPackage(work, asarPath);

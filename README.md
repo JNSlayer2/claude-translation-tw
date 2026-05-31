@@ -29,6 +29,8 @@ npm install
 bash scripts/install.sh
 ```
 
+`install.sh` 會自動把 runtime 複製到 `$HOME/.local/share/claude-tw`，並用安全工作目錄啟動 proxy / helper / Claude main process，避免從 `Documents` 等受保護目錄繼承 `cwd` 而觸發 `EPERM: uv_cwd`。
+
 安裝程式會把 runtime 檔案複製到：
 
 - `$HOME/.local/share/claude-tw`
@@ -49,6 +51,7 @@ bash scripts/install.sh
 
 ```bash
 bash scripts/diag.sh
+bash scripts/verify-launch.sh
 ```
 
 你應該會看到：
@@ -56,6 +59,9 @@ bash scripts/diag.sh
 - `codesign` 驗證通過
 - `CLAUDE_TW_PRELOAD_V1`、`CLAUDE_TW_MAIN_INJECT_V1`、`CLAUDE_TW_COWORK_SUPPORT_V1`、`CLAUDE_TW_COWORK_VM_V1` 都各出現一次
 - proxy health 通過：`http://127.0.0.1:9223/health`
+- `verify-launch.sh` 冷啟動後沒有新的 `launch-failure.err`
+
+如果首次啟動看到 macOS Keychain 權限提示，這是重新簽章後的正常一次性授權流程，不是先前那個 `Claude Desktop failed to launch` crash dialog。
 
 ## 還原
 
@@ -71,6 +77,7 @@ Claude 更新後可能會替換 `app.asar`。更新 Claude 後請重新執行：
 
 ```bash
 bash scripts/install.sh
+bash scripts/verify-launch.sh
 ```
 
 這是非官方的本機補丁。只應在你理解並接受「修改並 ad-hoc 簽章本機 app bundle」影響的電腦上使用。

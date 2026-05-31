@@ -73,6 +73,7 @@ codesign --verify --deep --strict /Applications/Claude.app
 
 ```bash
 bash scripts/diag.sh
+bash scripts/verify-launch.sh
 ```
 
 視覺檢查：
@@ -82,6 +83,8 @@ bash scripts/diag.sh
 - Customize：overview 卡片、connector/plugin/Skills 標籤；`Skills` 保留英文。
 - Settings：導覽、桌面設定、Code/Cowork 頁與長說明文字。
 - 取消翻譯：選單列 helper 應停止新翻譯，並盡可能還原已快取的節點。
+
+若從 `Documents` 或其他受保護目錄手動執行補丁，啟動腳本仍必須先切回 `$HOME` 再喚起 Claude binary。否則 Electron 可能在啟動時因 `process.cwd()` 命中受保護目錄而丟出 `EPERM: uv_cwd`，並被 `index.pre.js` 包成 `Claude Desktop failed to launch`。
 
 ## 翻譯規則
 
